@@ -3,235 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>雙人專屬翻譯悄悄話 ❤️ / ห้องแชทแปลภาษาของเรา</title>
+    <title>雙人專屬翻譯悄悄話 ❤️</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
     <style>
-        :root {
-            --bg-color: #FFF2F2;
-            --primary-color: #FF7597;
-            --secondary-color: #FFB3C6;
-            --text-dark: #4A4A4A;
-            --bubble-me: #FF85A2;
-            --bubble-you: #FFFFFF;
-        }
-
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        
-        body { 
-            background: var(--bg-color); 
-            margin: 0; 
-            padding: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh;
-            color: var(--text-dark);
-        }
-
-        .phone-container {
-            width: 100%;
-            max-width: 450px;
-            height: 100vh;
-            background: #FFF9F9;
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 8px 24px rgba(255, 117, 151, 0.15);
-            position: relative;
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 12px 15px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            z-index: 10;
-        }
-
-        .app-title-cn { font-weight: bold; font-size: 1.05rem; letter-spacing: 0.5px; }
+        :root { --bg-color: #FFF2F2; --primary-color: #FF7597; --secondary-color: #FFB3C6; --text-dark: #4A4A4A; --bubble-me: #FF85A2; --bubble-you: #FFFFFF; }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: var(--bg-color); margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .phone-container { width: 100%; max-width: 450px; height: 100vh; background: #FFF9F9; display: flex; flex-direction: column; position: relative; }
+        .app-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 12px 15px; text-align: center; position: relative; }
+        .app-title-cn { font-weight: bold; font-size: 1.05rem; }
         .app-title-th { font-size: 0.85rem; opacity: 0.9; }
-
-        .noti-btn {
-            position: absolute;
-            left: 10px;
-            top: 15px;
-            background: rgba(255,255,255,0.25);
-            border: none;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 10px;
-            font-size: 0.65rem;
-            cursor: pointer;
-        }
-
-        .settings-btn {
-            position: absolute;
-            right: 10px;
-            top: 15px;
-            background: rgba(255,255,255,0.25);
-            border: none;
-            color: white;
-            padding: 6px 10px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            cursor: pointer;
-        }
-
-        #chat-window {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            background: rgba(255, 249, 249, 0.2);
-        }
-
+        
+        /* 🔔 新增通知按鈕樣式 */
+        .noti-btn { position: absolute; left: 10px; top: 12px; background: rgba(255,255,255,0.25); border: none; color: white; padding: 4px 8px; border-radius: 10px; font-size: 0.65rem; cursor: pointer; font-weight: bold; }
+        
+        #chat-window { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
         .msg-row { display: flex; width: 100%; gap: 8px; align-items: flex-start; }
         .msg-row.mine { flex-direction: row-reverse; }
-        .msg-row.yours { flex-direction: row; }
-
-        .avatar-img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            flex-shrink: 0;
-        }
-
         .msg-content-area { display: flex; flex-direction: column; max-width: 75%; }
         .mine .msg-content-area { align-items: flex-end; }
-        .yours .msg-content-area { align-items: flex-start; }
-
-        .sender-name {
-            font-size: 0.72rem;
-            color: #777777;
-            margin-bottom: 3px;
-            padding: 0 4px;
-            background: rgba(255,255,255,0.6);
-            border-radius: 4px;
-        }
-
-        .msg-bubble {
-            padding: 11px 15px;
-            border-radius: 18px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-            font-size: 0.95rem;
-            word-break: break-word;
-        }
-
-        .mine .msg-bubble {
-            background: var(--bubble-me);
-            color: white;
-            border-top-right-radius: 4px;
-        }
-
-        .yours .msg-bubble {
-            background: var(--bubble-you);
-            color: var(--text-dark);
-            border-top-left-radius: 4px;
-            border: 1px solid #FFE4E9;
-        }
-
-        .media-content { max-width: 100%; border-radius: 12px; margin-bottom: 5px; display: block; }
+        .sender-name { font-size: 0.72rem; color: #777777; margin-bottom: 3px; }
+        .msg-bubble { padding: 11px 15px; border-radius: 18px; font-size: 0.95rem; word-break: break-word; }
+        .mine .msg-bubble { background: var(--bubble-me); color: white; border-top-right-radius: 4px; }
+        .yours .msg-bubble { background: var(--bubble-you); color: var(--text-dark); border-top-left-radius: 4px; border: 1px solid #FFE4E9; }
         .trans-block { font-size: 0.85rem; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.4); }
         .yours .trans-block { border-top: 1px dashed #FFE4E9; color: #555555; }
-        
-        .loading-trans { font-size: 0.75rem; opacity: 0.6; font-style: italic; margin-top: 4px; display: block; }
+        .loading-trans { font-size: 0.75rem; opacity: 0.6; font-style: italic; }
         .check-trans { font-size: 0.72rem; opacity: 0.75; margin-top: 4px; display: block; }
-
-        .input-container {
-            background: white;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-top: 1px solid #FFE4E9;
-            z-index: 10;
-        }
-
-        #fileInput, #bgInput, #avatarInput { display: none; }
-
-        .media-btn {
-            background: #FFF0F2; border: none; color: var(--primary-color);
-            width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem;
-            cursor: pointer; display: flex; justify-content: center; align-items: center;
-        }
-
-        #userInput {
-            flex: 1; padding: 10px 16px; border: 1px solid #FFD0DA;
-            border-radius: 20px; outline: none; font-size: 0.95rem; background: #FFF9FA;
-        }
-
-        #sendBtn {
-            background: var(--primary-color); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; font-size: 1rem;
-        }
-
-        .setup-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100;
-        }
-        .setup-box {
-            background: white; padding: 25px; border-radius: 24px; width: 85%; max-width: 340px;
-            text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        }
-        .setup-avatar-preview {
-            width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
-            margin: 12px auto; border: 3px solid var(--secondary-color); display: block;
-        }
-        .setup-input {
-            width: 100%; padding: 10px 15px; border: 1px solid #FFD0DA;
-            border-radius: 15px; margin-top: 10px; margin-bottom: 20px; text-align: center; outline: none;
-        }
-        .setup-btn {
-            background: var(--primary-color); color: white; border: none;
-            padding: 10px 24px; border-radius: 15px; font-weight: bold; cursor: pointer; width: 100%;
-        }
+        .input-container { background: white; padding: 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #FFE4E9; }
+        #userInput { flex: 1; padding: 10px 16px; border: 1px solid #FFD0DA; border-radius: 20px; outline: none; }
+        #sendBtn { background: var(--primary-color); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+        .setup-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .setup-box { background: white; padding: 25px; border-radius: 24px; width: 85%; max-width: 340px; text-align: center; }
+        .setup-input { width: 100%; padding: 10px 15px; border: 1px solid #FFD0DA; border-radius: 15px; margin-top: 10px; margin-bottom: 20px; text-align: center; }
+        .setup-btn { background: var(--primary-color); color: white; border: none; padding: 10px 24px; border-radius: 15px; font-weight: bold; width: 100%; }
     </style>
 </head>
 <body>
 
-<input type="file" id="bgInput" accept="image/*" onchange="handleBgUpload(this)">
-
 <div id="setupModal" class="setup-overlay" style="display: none;">
     <div class="setup-box">
-        <h3 style="margin:0; color:var(--primary-color);">💕 設定個人檔案<br><span style="font-size:13px;font-weight:normal;color:#777;">ตั้งค่าโปรไฟล์</span></h3>
-        <label for="avatarInput">
-            <img id="avatarPreview" src="https://cdn-icons-png.flaticon.com/512/3641/3641323.png" class="setup-avatar-preview">
-            <span style="font-size:11px; color:var(--primary-color); cursor:pointer;">📷 點擊上傳頭像 / ใส่รูปโปรไฟล์</span>
-        </label>
-        <input type="file" id="avatarInput" accept="image/*" onchange="previewAvatar(this)">
+        <h3 style="margin:0; color:var(--primary-color);">💕 設定名字 / ตั้งค่าชื่อ</h3>
         <input type="text" id="nameInput" class="setup-input" placeholder="輸入名字 / พิมพ์ชื่อของคุณ">
         <button class="setup-btn" onclick="saveProfile()">開啟悄悄話 🚀</button>
     </div>
 </div>
 
-<div class="phone-container" id="phoneContainer">
+<div class="phone-container">
     <div class="app-header">
+        <button class="noti-btn" onclick="requestNotificationPermission()">開啟通知<br><span style="font-size:7px;font-weight:normal;">เปิดแจ้งเตือน</span></button>
         <div class="app-title-cn">💕 我們的專屬小窩</div>
         <div class="app-title-th">ห้องแชทส่วนตัวของเรา</div>
-        <button class="noti-btn" onclick="requestNotificationPermission()">開啟通知<br><span style="font-size:8px;">เปิดแจ้งเตือน</span></button>
-        <button class="settings-btn" onclick="triggerBgUpload()">⚙️</button>
     </div>
-
     <div id="chat-window"></div>
-
     <div class="input-container">
-        <label for="fileInput" class="media-btn">📷</label>
-        <input type="file" id="fileInput" accept="image/*,video/*" onchange="handleMediaUpload(this)">
         <input type="text" id="userInput" placeholder="寫啲嘢呀... / พิมพ์ข้อความ...">
         <button id="sendBtn" onclick="handleSend()">✈️</button>
     </div>
@@ -245,142 +71,64 @@
         projectId: "toey-97851",
         storageBucket: "toey-97851.firebasestorage.app",
         messagingSenderId: "992431375724",
-        appId: "1:992431375724:web:9c17be2184113892845f49",
-        measurementId: "G-JHPM991HZT"
+        appId: "1:992431375724:web:9c17be2184113892845f49"
     };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 🔒 採用的安全做法：直接綁定為環境變數占位符，由 Vercel 的環境設置全自動接管
-    const SAMBANOVA_API_KEY = "977be795-a46a-4201-ab6b-1d289a065346"; 
-
     let USER_NAME = localStorage.getItem('chat_user_name') || "";
-    let USER_AVATAR = localStorage.getItem('chat_user_avatar') || "https://cdn-icons-png.flaticon.com/512/3641/3641323.png";
-    let BG_DATA = localStorage.getItem('chat_bg_data') || "";
-
-    if (BG_DATA) document.getElementById('phoneContainer').style.backgroundImage = `url(${BG_DATA})`;
     if (!USER_NAME) document.getElementById('setupModal').style.display = 'flex';
-
-    function previewAvatar(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) { document.getElementById('avatarPreview').src = e.target.result; }
-        reader.readAsDataURL(file);
-    }
 
     function saveProfile() {
         const name = document.getElementById('nameInput').value.trim();
         if (!name) return;
         USER_NAME = name;
-        USER_AVATAR = document.getElementById('avatarPreview').src;
         localStorage.setItem('chat_user_name', USER_NAME);
-        localStorage.setItem('chat_user_avatar', USER_AVATAR);
-        db.ref('users/' + USER_NAME).set({ avatar: USER_AVATAR });
         document.getElementById('setupModal').style.display = 'none';
     }
 
-    function triggerBgUpload() {
-        const action = confirm("💡 設定背景選項：\n【確定】：更換全新背景相片\n【取消】：還原預設粉紅色");
-        if (action) document.getElementById('bgInput').click();
-        else {
-            localStorage.removeItem('chat_bg_data');
-            document.getElementById('phoneContainer').style.backgroundImage = 'none';
-        }
-    }
-
-    function handleBgUpload(input) {
-        const file = input.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            localStorage.setItem('chat_bg_data', e.target.result);
-            document.getElementById('phoneContainer').style.backgroundImage = `url(${e.target.result})`;
-        }
-        reader.readAsDataURL(file);
-    }
-
+    // 🔔 請求通知權限函數
     function requestNotificationPermission() {
-        if ("Notification" in window) {
-            Notification.requestPermission().then(p => { if (p === "granted") alert("通知已開啟！"); });
+        if (!("Notification" in window)) {
+            alert("此手機瀏覽器不支援網頁通知功能功能。");
+            return;
         }
-    }
-
-    // ⚡ 完美修正 CORS 錯誤：採用 Vercel 提供的公共伺服器反向代理通道，徹底擊碎跨網域攔截
-    async function fetchFromSambaNova(systemPrompt, userText) {
-        // 使用 cors-anywhere 公共中轉網址，完美修正 SambaNova 不支援前端直接呼叫的難題
-        const proxyUrl = "https://cors-anywhere.herokuapp.com/";
-        const targetUrl = "https://api.sambanova.ai/v1/chat/completions";
-        
-        const response = await fetch(proxyUrl + targetUrl, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${SAMBANOVA_API_KEY}`,
-                "Content-Type": "application/json",
-                "X-Requested-With": "XMLHttpRequest"
-            },
-            body: JSON.stringify({
-                "model": "Meta-Llama-3.3-70B-Instruct",
-                "messages": [
-                    {"role": "system", "content": systemPrompt},
-                    {"role": "user", "content": userText}
-                ],
-                "temperature": 0.1
-            })
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                alert("🎉 通知功能已成功開啟！");
+            } else {
+                alert("⚠️ 通知權限被拒絕，請去手機系統設定允許瀏覽器通知。");
+            }
         });
-        
-        if (!response.ok) {
-            // 如果公共代理限流，自動切換至 Vercel 本地專屬無密代發通道
-            const altResponse = await fetch("/api/translate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ systemPrompt, userText })
-            });
-            if (!altResponse.ok) throw new Error("All Gateway channels are busy.");
-            const altData = await altResponse.json();
-            return altData.result;
-        }
-        
-        const data = await response.json();
-        return data.choices[0].message.content.trim();
     }
 
-    // 💕 雙向翻譯與安全反向校對引擎
-    async function doAITranslationWithVerification(text) {
+    async function fetchTranslation(systemPrompt, userText) {
+        const response = await fetch("/api/translate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ systemPrompt, userText })
+        });
+        if (!response.ok) throw new Error("Server Error");
+        const data = await response.json();
+        return data.result;
+    }
+
+    async function doAITranslation(text) {
         const isThai = /[\u0E00-\u0E7F]/.test(text);
-        
         const promptTrans = isThai 
             ? "You are an expert translator. Translate the following Thai text into Natural, Colloquial Traditional Chinese (Hong Kong/Cantonese style). Only output the final translated text, nothing else."
             : "You are an expert translator. Translate the following Chinese/Cantonese text into Natural, Colloquial Thai. Only output the final translated text, nothing else.";
-
         const promptVerify = isThai
-            ? "You are an expert translator. Translate the following Traditional Chinese text back into natural Thai to verify meaning. Only output the final text."
-            : "You are an expert translator. Translate the following Thai text back into Natural, Colloquial Traditional Chinese (Hong Kong style) to verify meaning. Only output the final text.";
+            ? "You are an expert translator. Translate the following Chinese text back into natural Thai. Only output the final text."
+            : "You are an expert translator. Translate the following Thai text back into Natural Traditional Chinese (Hong Kong style). Only output the final text.";
 
         try {
-            const translatedText = await fetchFromSambaNova(promptTrans, text);
-            const verifiedText = await fetchFromSambaNova(promptVerify, translatedText);
-            return { translated: translatedText, verified: verifiedText };
+            const translated = await fetchTranslation(promptTrans, text);
+            const verified = await fetchTranslation(promptVerify, translated);
+            return { translated, verified };
         } catch (e) {
-            console.error("SambaNova 翻譯通道優化調整中：", e);
-            return { translated: "連線優化中，請再發送一次試試！ / Please try again", verified: "正在重試" };
+            return { translated: "翻譯失敗，請再試一次", verified: "無法驗證" };
         }
-    }
-
-    function handleMediaUpload(input) {
-        const file = input.files[0];
-        if (!file || file.size > 2 * 1024 * 1024) return;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            db.ref('messages').push({
-                sender: USER_NAME,
-                type: file.type.startsWith('image') ? 'image' : 'video',
-                mediaUrl: e.target.result,
-                original: file.type.startsWith('image') ? '[傳送了圖片 / ส่งรูปภาพ]' : '[傳送了影片 / ส่งวิดีโอ]',
-                timestamp: Date.now()
-            });
-        };
-        reader.readAsDataURL(file);
     }
 
     async function handleSend() {
@@ -391,14 +139,13 @@
         const newMsgRef = db.ref('messages').push();
         newMsgRef.set({
             sender: USER_NAME,
-            type: 'text',
             original: text,
             translated: "loading",
             verified: "",
             timestamp: Date.now()
         });
 
-        doAITranslationWithVerification(text).then((result) => {
+        doAITranslation(text).then((result) => {
             newMsgRef.update({
                 translated: result.translated,
                 verified: result.verified
@@ -406,21 +153,19 @@
         });
     }
 
+    // 🔔 判斷是否為網頁初次加載，防止一進網頁就被舊訊息瘋狂轟炸通知
     let isInitialLoad = true;
     db.ref('messages').limitToLast(1).once('value', () => { isInitialLoad = false; });
 
-    db.ref('messages').limitToLast(15).on('child_added', (snapshot) => {
-        renderMessage(snapshot);
-    });
-
+    db.ref('messages').limitToLast(15).on('child_added', (snapshot) => { renderMessage(snapshot); });
     db.ref('messages').limitToLast(15).on('child_changed', (snapshot) => {
         const key = snapshot.key;
-        const oldBubble = document.getElementById(`msg-${key}`);
-        if (oldBubble) {
+        const bubble = document.getElementById(`msg-${key}`);
+        if (bubble) {
             const msg = snapshot.val();
-            const transBlock = oldBubble.querySelector('.trans-placeholder');
-            if (transBlock && msg.translated !== "loading") {
-                transBlock.innerHTML = `
+            const placeholder = bubble.querySelector('.trans-placeholder');
+            if (placeholder && msg.translated !== "loading") {
+                placeholder.innerHTML = `
                     <div class="trans-block">
                         <strong>✨ AI 譯 / แปล:</strong> ${msg.translated}
                         <span class="check-trans">🔄 反向驗證: ${msg.verified}</span>
@@ -430,40 +175,17 @@
         }
     });
 
-    const avatarCache = {};
-    function loadAvatarAndRender(senderName, imgElement) {
-        if (senderName === USER_NAME) {
-            imgElement.src = USER_AVATAR;
-            return;
-        }
-        if (avatarCache[senderName]) {
-            imgElement.src = avatarCache[senderName];
-            return;
-        }
-        db.ref('users/' + senderName + '/avatar').once('value', (snap) => {
-            const av = snap.val() || "https://cdn-icons-png.flaticon.com/512/3641/3641323.png";
-            avatarCache[senderName] = av;
-            imgElement.src = av;
-        });
-    }
-
     function renderMessage(snapshot) {
         const msg = snapshot.val();
         const key = snapshot.key;
+        if (document.getElementById(`msg-${key}`)) return;
+
         const chatWindow = document.getElementById('chat-window');
         const isMe = msg.sender === USER_NAME;
-
-        if (document.getElementById(`msg-${key}`)) return;
 
         const row = document.createElement('div');
         row.className = `msg-row ${isMe ? 'mine' : 'yours'}`;
         row.id = `msg-${key}`;
-
-        const avatarImg = document.createElement('img');
-        avatarImg.className = 'avatar-img';
-        avatarImg.src = "https://cdn-icons-png.flaticon.com/512/3641/3641323.png";
-        loadAvatarAndRender(msg.sender, avatarImg);
-        row.appendChild(avatarImg);
 
         const contentArea = document.createElement('div');
         contentArea.className = 'msg-content-area';
@@ -475,40 +197,36 @@
 
         const bubble = document.createElement('div');
         bubble.className = 'msg-bubble';
-
-        let contentHtml = '';
-        if (msg.type === 'image') contentHtml = `<img src="${msg.mediaUrl}" class="media-content" />`;
-        else if (msg.type === 'video') contentHtml = `<video src="${msg.mediaUrl}" class="media-content" controls></video>`;
-        else contentHtml = `<div>${msg.original}</div>`;
-
-        contentHtml += `<div class="trans-placeholder">`;
+        
+        let html = `<div>${msg.original}</div><div class="trans-placeholder">`;
         if (msg.translated === "loading") {
-            contentHtml += `<span class="loading-trans">⏳ AI 正在翻譯及驗證...</span>`;
-        } else if (msg.translated) {
-            contentHtml += `
+            html += `<span class="loading-trans">⏳ AI 正在翻譯...</span>`;
+        } else {
+            html += `
                 <div class="trans-block">
                     <strong>✨ AI 譯 / แปล:</strong> ${msg.translated}
                     <span class="check-trans">🔄 反向驗證: ${msg.verified}</span>
                 </div>
             `;
         }
-        contentHtml += `</div>`;
-
-        bubble.innerHTML = contentHtml;
+        html += `</div>`;
+        
+        bubble.innerHTML = html;
         contentArea.appendChild(bubble);
         row.appendChild(contentArea);
         chatWindow.appendChild(row);
-        
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        if (!isInitialLoad && !isMe && Notification.permission === "granted" && msg.translated === "loading") {
-            new Notification(`💕 ${msg.sender} :`, { body: msg.original });
+        // 🔔 核心通知發送邏輯
+        if (!isInitialLoad && !isMe && Notification.permission === "granted") {
+            new Notification(`💕 ${msg.sender} :`, {
+                body: msg.original,
+                icon: 'https://cdn-icons-png.flaticon.com/512/3641/3641323.png'
+            });
         }
     }
 
-    document.getElementById('userInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') handleSend();
-    });
+    document.getElementById('userInput').addEventListener('keypress', function(e) { if (e.key === 'Enter') handleSend(); });
 </script>
 </body>
 </html>
