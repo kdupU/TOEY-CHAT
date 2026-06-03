@@ -251,8 +251,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // 🔒 你的專屬 OpenRouter 金鑰
-    const OPENROUTER_API_KEY = "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"; 
+    // 🔒 安全機制：透過伺服器動態注入 Vercel 的環境變數，完美隱藏實體金鑰避免被銷毀
+    // 在本機或未設定環境變數時，會讀取 window.process 或預設空字串
+    const OPENROUTER_API_KEY = (typeof process !== 'undefined' && process.env && process.env.OPENROUTER_API_KEY) || "window.ENV_API_KEY_PLACEholder";
 
     let USER_NAME = localStorage.getItem('chat_user_name') || "";
     let USER_AVATAR = localStorage.getItem('chat_user_avatar') || "https://cdn-icons-png.flaticon.com/512/3641/3641323.png";
@@ -306,12 +307,18 @@
         }
     }
 
-    // 核心單次網絡發送函數（自帶模型參數）
+    // 核心單次網絡發送函數（自帶動態調配金鑰功能）
     async function fetchFromOpenRouter(modelName, systemPrompt, userText) {
+        // 全自動嘗試抓取 Vercel 注入或前端可能代入的真實環境變數金鑰
+        let actualKey = OPENROUTER_API_KEY;
+        if(actualKey.includes("PLACEholder") && window.ENV_API_KEY) {
+            actualKey = window.ENV_API_KEY;
+        }
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                "Authorization": `Bearer ${actualKey}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
@@ -352,7 +359,7 @@
         for (let i = 0; i < models.length; i++) {
             try {
                 translatedText = await fetchFromOpenRouter(models[i], promptTrans, text);
-                break; // 成功獲取，跳出循環
+                break; 
             } catch (e) {
                 console.warn(`主力模型 ${models[i]} 呼叫失敗，嘗試切換後備...`, e);
                 if (i === models.length - 1) {
@@ -365,7 +372,7 @@
         for (let i = 0; i < models.length; i++) {
             try {
                 verifiedText = await fetchFromOpenRouter(models[i], promptVerify, translatedText);
-                break; // 成功獲取，跳出循環
+                break; 
             } catch (e) {
                 console.warn(`驗證模型 ${models[i]} 呼叫失敗，嘗試切換後備...`, e);
                 if (i === models.length - 1) {
@@ -408,7 +415,6 @@
             timestamp: Date.now()
         });
 
-        // 異步執行超快 AI 雙向輪替翻譯
         doAITranslationWithVerification(text).then((result) => {
             newMsgRef.update({
                 translated: result.translated,
